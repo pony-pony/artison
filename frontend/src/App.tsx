@@ -4,6 +4,7 @@ import { Layout } from './shared/components/Layout';
 import { HomePage } from './pages/HomePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage, SignupPage, AuthGuard, useAuth } from './features/auth';
+import { CreatorSettingsPage, PublicProfilePage, LinksPage } from './features/creator';
 
 function AppRoutes() {
   const { checkAuth } = useAuth();
@@ -26,6 +27,16 @@ function AppRoutes() {
             </AuthGuard>
           }
         />
+        <Route
+          path="creator/settings"
+          element={
+            <AuthGuard>
+              <CreatorSettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route path="creator/:username" element={<PublicProfilePage />} />
+        <Route path="links/:username" element={<LinksPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

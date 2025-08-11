@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db import Base, engine
 from app.domains.auth.router import router as auth_router
+from app.domains.creator.router import router as creator_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -26,6 +27,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
+app.include_router(creator_router)
 
 
 @app.get("/")

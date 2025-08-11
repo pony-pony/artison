@@ -9,8 +9,10 @@ if __name__ == "__main__":
     # Remove existing database file if it exists (for development only)
     db_file = "artison.db"
     if os.path.exists(db_file):
-        print(f"Removing existing database file: {db_file}")
-        os.remove(db_file)
+        response = input(f"Remove existing database file '{db_file}'? (y/N): ")
+        if response.lower() == 'y':
+            print(f"Removing existing database file: {db_file}")
+            os.remove(db_file)
     
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

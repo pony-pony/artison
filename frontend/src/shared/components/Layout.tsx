@@ -15,6 +15,24 @@ export const Layout = () => {
                   Artison
                 </Link>
               </div>
+              {isAuthenticated && (
+                <div className="ml-6 flex space-x-4 items-center">
+                  <Link
+                    to="/dashboard"
+                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  {user?.is_creator && (
+                    <Link
+                      to="/creator/settings"
+                      className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Creator Settings
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex items-center">
               {isAuthenticated ? (
