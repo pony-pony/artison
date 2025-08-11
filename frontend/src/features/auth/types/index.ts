@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;  // Changed from number to string for UUID
   email: string;
   username: string;
   is_creator: boolean;

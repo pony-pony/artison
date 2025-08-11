@@ -24,7 +24,7 @@ class UserLogin(BaseModel):
 
 # Response schemas
 class User(UserBase):
-    id: int
+    id: str  # Changed from int to str for UUID
     username: str
     is_active: bool
     created_at: datetime

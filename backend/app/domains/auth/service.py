@@ -30,7 +30,7 @@ def generate_unique_username(db: Session, email: str) -> str:
     return username
 
 
-def get_user(db: Session, user_id: int) -> Optional[User]:
+def get_user(db: Session, user_id: str) -> Optional[User]:  # Changed from int to str
     """Get a user by ID."""
     return db.query(User).filter(User.id == user_id).first()
 
