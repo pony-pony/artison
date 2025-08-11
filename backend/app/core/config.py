@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
     
+    # Stripe
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    
+    # Support settings
+    MINIMUM_SUPPORT_AMOUNT: int = 150  # 150 yen
+    
     class Config:
         env_file = ".env"
         

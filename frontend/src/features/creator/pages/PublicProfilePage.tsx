@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { creatorService } from '../services/creatorService';
+import { SupportForm, SupportStatsDisplay } from '../../support';
 import type { CreatorProfilePublic } from '../types';
 
 export const PublicProfilePage = () => {
@@ -70,69 +71,104 @@ export const PublicProfilePage = () => {
       </div>
 
       {/* Profile Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative -mt-16">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            {/* Profile Image and Name */}
-            <div className="sm:flex sm:items-center sm:space-x-5">
-              <div className="flex-shrink-0">
-                {profile.profile_image_url ? (
-                  <img
-                    src={profile.profile_image_url}
-                    alt={profile.display_name}
-                    className="h-24 w-24 rounded-full"
-                  />
-                ) : (
-                  <div className="h-24 w-24 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-600">
-                      {profile.display_name[0].toUpperCase()}
-                    </span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Profile Info */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                {/* Profile Image and Name */}
+                <div className="sm:flex sm:items-center sm:space-x-5">
+                  <div className="flex-shrink-0">
+                    {profile.profile_image_url ? (
+                      <img
+                        src={profile.profile_image_url}
+                        alt={profile.display_name}
+                        className="h-24 w-24 rounded-full"
+                      />
+                    ) : (
+                      <div className="h-24 w-24 rounded-full bg-gray-300 flex items-center justify-center">
+                        <span className="text-3xl font-bold text-gray-600">
+                          {profile.display_name[0].toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 text-center sm:mt-0 sm:text-left">
+                    <h1 className="text-2xl font-bold text-gray-900">{profile.display_name}</h1>
+                    <p className="text-sm text-gray-500">@{profile.username}</p>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                {profile.bio && (
+                  <div className="mt-6">
+                    <p className="text-gray-700 whitespace-pre-wrap">{profile.bio}</p>
+                  </div>
+                )}
+
+                {/* Platform Links */}
+                {profile.platform_links.length > 0 && (
+                  <div className="mt-8">
+                    <h2 className="text-lg font-medium text-gray-900 mb-4">Find me on</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {profile.platform_links
+                        .sort((a, b) => a.display_order - b.display_order)
+                        .map((link) => (
+                          <a
+                            key={link.id}
+                            href={link.platform_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                          >
+                            {link.platform_name}
+                            <svg
+                              className="ml-auto h-4 w-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                          </a>
+                        ))}
+                    </div>
                   </div>
                 )}
               </div>
-              <div className="mt-4 text-center sm:mt-0 sm:text-left">
-                <h1 className="text-2xl font-bold text-gray-900">{profile.display_name}</h1>
-                <p className="text-sm text-gray-500">@{profile.username}</p>
-              </div>
             </div>
 
-            {/* Bio */}
-            {profile.bio && (
-              <div className="mt-6">
-                <p className="text-gray-700 whitespace-pre-wrap">{profile.bio}</p>
-              </div>
-            )}
+            {/* Right Column - Support Section */}
+            <div className="space-y-6">
+              {/* Support Stats */}
+              {username && <SupportStatsDisplay username={username} />}
 
-            {/* Platform Links */}
-            {profile.platform_links.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Find me on</h2>
-                <div className="space-y-3">
-                  {profile.platform_links
-                    .sort((a, b) => a.display_order - b.display_order)
-                    .map((link) => (
-                      <a
-                        key={link.id}
-                        href={link.platform_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-center font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                      >
-                        {link.platform_name}
-                      </a>
-                    ))}
-                </div>
-              </div>
-            )}
+              {/* Support Form */}
+              {username && (
+                <SupportForm
+                  creatorUsername={username}
+                  creatorDisplayName={profile.display_name}
+                />
+              )}
 
-            {/* Support Button - Placeholder for Phase 3 */}
-            <div className="mt-8">
-              <button
-                disabled
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed"
-              >
-                Support Feature Coming Soon
-              </button>
+              {/* Links Page Button */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Links</h3>
+                <a
+                  href={`/links/${profile.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  View Links Page
+                </a>
+              </div>
             </div>
           </div>
         </div>

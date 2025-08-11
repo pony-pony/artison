@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage, SignupPage, AuthGuard, useAuth } from './features/auth';
 import { CreatorSettingsPage, PublicProfilePage, LinksPage } from './features/creator';
+import { SupportSuccessPage } from './features/support';
 
 function AppRoutes() {
   const { checkAuth } = useAuth();
@@ -37,6 +38,14 @@ function AppRoutes() {
         />
         <Route path="creator/:username" element={<PublicProfilePage />} />
         <Route path="links/:username" element={<LinksPage />} />
+        <Route
+          path="support/success"
+          element={
+            <AuthGuard>
+              <SupportSuccessPage />
+            </AuthGuard>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
