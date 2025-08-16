@@ -15,12 +15,14 @@ export interface SupportWithUsers extends Support {
   creator_display_name: string;
 }
 
-export enum PaymentStatus {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  REFUNDED = 'refunded',
-}
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+
+export const PaymentStatusValues = {
+  PENDING: 'pending' as const,
+  COMPLETED: 'completed' as const,
+  FAILED: 'failed' as const,
+  REFUNDED: 'refunded' as const,
+};
 
 export interface CreateCheckoutSessionRequest {
   amount: number;
