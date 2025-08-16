@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { authService } from '../services/authService';
-import type { User, LoginCredentials, RegisterData, AuthState } from '../types';
+import type { LoginCredentials, RegisterData, AuthState } from '../types';
 
 interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>;
