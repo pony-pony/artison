@@ -310,14 +310,9 @@ export const PlatformLinksManager = ({
         <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
           <p className="text-sm text-indigo-700 font-medium">
             Your links are live at:{' '}
-            <a
-              href={`/links/${links[0]?.creator_profile?.username || ''}`}
-              className="underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <span className="underline">
               {window.location.origin}/links/username
-            </a>
+            </span>
           </p>
         </div>
       )}

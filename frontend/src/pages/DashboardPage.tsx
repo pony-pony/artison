@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../features/auth';
 import { useCreator } from '../features/creator';
 import { ProfileForm } from '../features/creator/components/ProfileForm';
@@ -9,7 +9,6 @@ import type { CreatorSupportSummary, SupporterSummary } from '../features/suppor
 
 export const DashboardPage = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const {
     profile,
     isLoading: isCreatorLoading,
@@ -21,7 +20,6 @@ export const DashboardPage = () => {
     updatePlatformLink,
     deletePlatformLink,
     reorderPlatformLinks,
-    clearError,
   } = useCreator();
   
   const [receivedSupports, setReceivedSupports] = useState<CreatorSupportSummary | null>(null);

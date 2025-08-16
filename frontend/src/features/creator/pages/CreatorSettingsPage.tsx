@@ -19,7 +19,6 @@ export const CreatorSettingsPage = () => {
     updatePlatformLink,
     deletePlatformLink,
     reorderPlatformLinks,
-    clearError,
   } = useCreator();
 
   useEffect(() => {

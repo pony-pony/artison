@@ -19,10 +19,9 @@ type SupportFormData = z.infer<typeof supportSchema>;
 interface SupportFormProps {
   creatorUsername: string;
   creatorDisplayName: string;
-  onSuccess?: () => void;
 }
 
-export const SupportForm = ({ creatorUsername, creatorDisplayName, onSuccess }: SupportFormProps) => {
+export const SupportForm = ({ creatorUsername, creatorDisplayName }: SupportFormProps) => {
   const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
