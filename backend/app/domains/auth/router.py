@@ -15,7 +15,6 @@ def register(
     db: Session = Depends(get_db)
 ):
     try:
-        # 引数名を修正: user -> user_create
         return service.create_user(db=db, user_create=user_data)
     except ValueError as e:
         raise HTTPException(
@@ -26,7 +25,7 @@ def register(
 
 @router.post("/login", response_model=schemas.Token)
 def login(
-    credentials: schemas.LoginCredentials,
+    credentials: schemas.UserLogin,  # LoginCredentials -> UserLogin
     db: Session = Depends(get_db)
 ):
     user = service.authenticate_user(
