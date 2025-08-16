@@ -1,47 +1,71 @@
-from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from jose import JWTError
+import jwt
 
+from app.core.config import settings
 from app.core.db import get_db
-from app.core.security import decode_access_token
 from app.domains.auth.models import User
-from app.domains.auth.service import get_user_by_email
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer()
 
 
-async def get_current_user(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
 ) -> User:
-    """Get the current authenticated user."""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    token = credentials.credentials
     
-    payload = decode_access_token(token)
-    if payload is None:
-        raise credentials_exception
+    try:
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
+        )
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+            )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
     
-    email: str = payload.get("sub")
-    if email is None:
-        raise credentials_exception
-    
-    user = get_user_by_email(db, email=email)
+    user = db.query(User).filter(User.id == user_id).first()
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
     
     return user
 
 
-async def get_current_active_user(
+def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
-    """Get the current active user."""
     if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
+    return current_user
+
+
+def get_current_creator(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    if not current_user.is_creator:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a creator account"
+        )
     return current_user
