@@ -4,11 +4,20 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# SQLAlchemy setup
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
-)
+# SQLAlchemy setup - PostgreSQL対応
+if settings.DATABASE_URL.startswith("sqlite"):
+    # SQLite用設定（ローカル開発）
+    engine = create_engine(
+        settings.DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    # PostgreSQL用設定（本番環境）
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,  # 接続プールの健全性チェック
+        pool_recycle=300,    # 5分で接続をリサイクル
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
