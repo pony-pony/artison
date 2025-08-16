@@ -4,7 +4,7 @@ import { Layout } from './shared/components/Layout';
 import { HomePage } from './pages/HomePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage, SignupPage, AuthGuard, useAuth } from './features/auth';
-import { CreatorSettingsPage, PublicProfilePage, LinksPage } from './features/creator';
+import { PublicProfilePage, LinksPage } from './features/creator';
 import { SupportSuccessPage } from './features/support';
 
 function AppRoutes() {
@@ -25,14 +25,6 @@ function AppRoutes() {
           element={
             <AuthGuard>
               <DashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="creator/settings"
-          element={
-            <AuthGuard>
-              <CreatorSettingsPage />
             </AuthGuard>
           }
         />

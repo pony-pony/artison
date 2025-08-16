@@ -23,14 +23,6 @@ export const Layout = () => {
                   >
                     Dashboard
                   </Link>
-                  {user?.is_creator && (
-                    <Link
-                      to="/creator/settings"
-                      className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                    >
-                      Creator Settings
-                    </Link>
-                  )}
                 </div>
               )}
             </div>
