@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -15,29 +14,38 @@ def register(
     user_data: schemas.UserCreate,
     db: Session = Depends(get_db)
 ):
-    """Register a new user."""
-    return service.create_user(db=db, user=user_data)
+    try:
+        # 引数名を修正: user -> user_create
+        return service.create_user(db=db, user_create=user_data)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.post("/login", response_model=schemas.Token)
 def login(
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    credentials: schemas.LoginCredentials,
+    db: Session = Depends(get_db)
 ):
-    """Login and get access token."""
-    user = service.authenticate_user(db, form_data.username, form_data.password)
+    user = service.authenticate_user(
+        db, 
+        email=credentials.email, 
+        password=credentials.password
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = service.create_user_token(user)
+    access_token = service.create_token(user.id)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=schemas.User)
-def read_users_me(current_user: User = Depends(get_current_active_user)):
-    """Get current user info."""
+def get_current_user(
+    current_user: User = Depends(get_current_active_user)
+):
     return current_user
