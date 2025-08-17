@@ -3,15 +3,10 @@ import type { User, LoginCredentials, RegisterData, AuthToken } from '../types';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthToken> {
-    // OAuth2PasswordRequestForm expects username field for email
-    const formData = new FormData();
-    formData.append('username', credentials.email);
-    formData.append('password', credentials.password);
-    
-    const response = await apiClient.post<AuthToken>('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    // Send as JSON, not FormData
+    const response = await apiClient.post<AuthToken>('/auth/login', {
+      email: credentials.email,
+      password: credentials.password,
     });
     return response.data;
   },
