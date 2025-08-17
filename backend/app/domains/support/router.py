@@ -7,6 +7,7 @@ from app.core.db import get_db
 from app.core.config import settings
 from app.api.deps import get_current_active_user
 from app.domains.auth.models import User
+from app.domains.creator.models import CreatorProfile  # Fix import
 from app.domains.support import schemas, service
 
 router = APIRouter(prefix="/support", tags=["Support"])
@@ -131,8 +132,8 @@ def get_given_supports(
     recent_supports = []
     for support in supports[:10]:  # Last 10 supports
         creator = db.query(User).filter(User.id == support.creator_id).first()
-        creator_profile = db.query(service.CreatorProfile).filter(
-            service.CreatorProfile.user_id == support.creator_id
+        creator_profile = db.query(CreatorProfile).filter(
+            CreatorProfile.user_id == support.creator_id
         ).first()
         
         if creator and creator_profile:
@@ -174,8 +175,8 @@ def get_creator_support_stats(
     stats = service.get_creator_stats(db, creator.id)
     
     # Add creator info to recent supports
-    creator_profile = db.query(service.CreatorProfile).filter(
-        service.CreatorProfile.user_id == creator.id
+    creator_profile = db.query(CreatorProfile).filter(
+        CreatorProfile.user_id == creator.id
     ).first()
     
     if creator_profile:

@@ -1,33 +1,46 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.pool import NullPool
 from app.core.config import settings
+import logging
 
-# SQLAlchemy setup - PostgreSQL対応
-if settings.DATABASE_URL.startswith("sqlite"):
-    # SQLite用設定（ローカル開発）
-    engine = create_engine(
-        settings.DATABASE_URL,
-        connect_args={"check_same_thread": False}
-    )
+logger = logging.getLogger(__name__)
+
+# Connection arguments for PostgreSQL
+connect_args = {}
+engine_args = {}
+
+if settings.DATABASE_URL.startswith("postgresql"):
+    # Use NullPool for serverless environments
+    engine_args["poolclass"] = NullPool
+    connect_args = {
+        "connect_timeout": 10,
+        "options": "-c statement_timeout=30000"
+    }
 else:
-    # PostgreSQL用設定（本番環境）
-    engine = create_engine(
-        settings.DATABASE_URL,
-        pool_pre_ping=True,  # 接続プールの健全性チェック
-        pool_recycle=300,    # 5分で接続をリサイクル
-    )
+    # SQLite doesn't need special handling
+    pass
+
+# Create engine
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args=connect_args,
+    **engine_args
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
 
-# Database dependency
 def get_db():
+    """Get database session."""
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        db.rollback()
+        raise
     finally:
         db.close()
