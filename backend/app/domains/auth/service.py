@@ -2,11 +2,25 @@ from datetime import timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
 import jwt
+import re
 
 from app.core.config import settings
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.domains.auth.models import User
 from app.domains.auth.schemas import UserCreate
+
+
+def generate_username_from_email(email: str) -> str:
+    """Generate a username from email address."""
+    # Extract the part before @ and remove non-alphanumeric characters
+    base_username = email.split('@')[0]
+    base_username = re.sub(r'[^a-zA-Z0-9]', '', base_username)
+    
+    # Ensure minimum length
+    if len(base_username) < 3:
+        base_username = f"user{base_username}"
+    
+    return base_username.lower()
 
 
 def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
@@ -25,8 +39,22 @@ def create_user(db: Session, user_create: UserCreate) -> User:
     if db.query(User).filter(User.email == user_create.email).first():
         raise ValueError("Email already registered")
     
-    if db.query(User).filter(User.username == user_create.username).first():
-        raise ValueError("Username already taken")
+    # Generate username if not provided
+    if not user_create.username:
+        base_username = generate_username_from_email(user_create.email)
+        username = base_username
+        counter = 1
+        
+        # Ensure username is unique
+        while db.query(User).filter(User.username == username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        user_create.username = username
+    else:
+        # Check if provided username is already taken
+        if db.query(User).filter(User.username == user_create.username).first():
+            raise ValueError("Username already taken")
     
     # Create new user
     db_user = User(
