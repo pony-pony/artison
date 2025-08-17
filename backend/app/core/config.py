@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import json
+import os
 
 
 class Settings(BaseSettings):
@@ -12,8 +13,15 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./artison.db"
     
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    # CORS - 環境変数から直接JSONをパース
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        cors_env = os.getenv("CORS_ORIGINS", '["http://localhost:5173"]')
+        try:
+            return json.loads(cors_env)
+        except json.JSONDecodeError:
+            # JSONパースに失敗した場合、カンマ区切りの文字列として処理
+            return [origin.strip() for origin in cors_env.split(",")]
     
     # Stripe
     STRIPE_SECRET_KEY: str = ""
@@ -25,12 +33,6 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
-        
-        @classmethod
-        def parse_env_var(cls, field_name: str, raw_val: str):
-            if field_name == "CORS_ORIGINS":
-                return json.loads(raw_val)
-            return raw_val
 
 
 settings = Settings()
