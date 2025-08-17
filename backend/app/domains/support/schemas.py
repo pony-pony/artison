@@ -55,6 +55,7 @@ class SupportStats(BaseModel):
     total_supporters: int
     total_amount: int
     recent_supports: List[SupportWithUsers]
+    can_receive_payments: bool = False  # Added field
 
 
 class CreatorSupportSummary(BaseModel):

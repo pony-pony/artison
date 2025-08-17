@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { creatorService } from '../services/creatorService';
 import { SupportForm, SupportStatsDisplay } from '../../support';
 import type { CreatorProfilePublic } from '../types';
+import type { SupportStats } from '../../support/types';
 
 export const PublicProfilePage = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<CreatorProfilePublic | null>(null);
+  const [supportStats, setSupportStats] = useState<SupportStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +30,10 @@ export const PublicProfilePage = () => {
 
     fetchProfile();
   }, [username]);
+
+  const handleStatsLoaded = (stats: SupportStats) => {
+    setSupportStats(stats);
+  };
 
   if (isLoading) {
     return (
@@ -147,13 +153,19 @@ export const PublicProfilePage = () => {
             {/* Right Column - Support Section */}
             <div className="space-y-6">
               {/* Support Stats */}
-              {username && <SupportStatsDisplay username={username} />}
+              {username && (
+                <SupportStatsDisplay 
+                  username={username} 
+                  onStatsLoaded={handleStatsLoaded}
+                />
+              )}
 
               {/* Support Form */}
               {username && (
                 <SupportForm
                   creatorUsername={username}
                   creatorDisplayName={profile.display_name}
+                  canReceivePayments={supportStats?.can_receive_payments || false}
                 />
               )}
 

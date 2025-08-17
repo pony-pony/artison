@@ -40,6 +40,7 @@ export interface SupportStats {
   total_supporters: number;
   total_amount: number;
   recent_supports: SupportWithUsers[];
+  can_receive_payments: boolean;  // Added field
 }
 
 export interface CreatorSupportSummary {

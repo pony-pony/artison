@@ -4,9 +4,10 @@ import type { SupportStats } from '../types';
 
 interface SupportStatsDisplayProps {
   username: string;
+  onStatsLoaded?: (stats: SupportStats) => void;
 }
 
-export const SupportStatsDisplay = ({ username }: SupportStatsDisplayProps) => {
+export const SupportStatsDisplay = ({ username, onStatsLoaded }: SupportStatsDisplayProps) => {
   const [stats, setStats] = useState<SupportStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -15,6 +16,7 @@ export const SupportStatsDisplay = ({ username }: SupportStatsDisplayProps) => {
       try {
         const data = await supportService.getCreatorStats(username);
         setStats(data);
+        onStatsLoaded?.(data);
       } catch (error) {
         console.error('Failed to fetch support stats:', error);
       } finally {
@@ -23,7 +25,7 @@ export const SupportStatsDisplay = ({ username }: SupportStatsDisplayProps) => {
     };
 
     fetchStats();
-  }, [username]);
+  }, [username, onStatsLoaded]);
 
   if (isLoading) {
     return <div className="animate-pulse bg-gray-200 h-20 rounded-lg"></div>;

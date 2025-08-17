@@ -23,13 +23,18 @@ class Settings(BaseSettings):
             # JSONパースに失敗した場合、カンマ区切りの文字列として処理
             return [origin.strip() for origin in cors_env.split(",")]
     
+    # Frontend URL
+    FRONTEND_URL: str = "http://localhost:5173"
+    
     # Stripe
     STRIPE_SECRET_KEY: str = ""
     STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_CONNECT_WEBHOOK_SECRET: str = ""
     
     # Support settings
     MINIMUM_SUPPORT_AMOUNT: int = 150  # 150 yen
+    PLATFORM_FEE_PERCENT: float = 10.0  # 10% platform fee
     
     class Config:
         env_file = ".env"

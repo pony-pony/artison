@@ -9,6 +9,7 @@ from app.domains.support.models import Support, PaymentStatus
 from app.domains.support.schemas import CreateSupportRequest, SupportWithUsers
 from app.domains.auth.models import User
 from app.domains.creator.models import CreatorProfile
+from app.domains.payment.models import StripeAccount
 
 # Initialize Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -37,6 +38,16 @@ def create_checkout_session(
     if not creator_profile:
         raise ValueError("Creator profile not found")
     
+    # Check if creator has Stripe account AND it's enabled
+    stripe_account = db.query(StripeAccount).filter(
+        StripeAccount.user_id == creator_id,
+        StripeAccount.charges_enabled == True,
+        StripeAccount.payouts_enabled == True
+    ).first()
+    
+    if not stripe_account:
+        raise ValueError("Creator has not completed payment setup. They need to connect their bank account first.")
+    
     # Create support record with pending status
     support = Support(
         supporter_id=supporter_id,
@@ -49,11 +60,14 @@ def create_checkout_session(
     db.commit()
     db.refresh(support)
     
-    # Create Stripe checkout session
+    # Calculate platform fee (10%)
+    platform_fee = int(amount * settings.PLATFORM_FEE_PERCENT / 100)
+    
+    # Create Stripe checkout session with automatic transfer
     try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
+        session_params = {
+            'payment_method_types': ['card'],
+            'line_items': [{
                 'price_data': {
                     'currency': 'jpy',
                     'product_data': {
@@ -64,16 +78,24 @@ def create_checkout_session(
                 },
                 'quantity': 1,
             }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            client_reference_id=support.id,
-            metadata={
+            'mode': 'payment',
+            'success_url': success_url,
+            'cancel_url': cancel_url,
+            'client_reference_id': support.id,
+            'metadata': {
                 'support_id': support.id,
                 'supporter_id': supporter_id,
                 'creator_id': creator_id
+            },
+            'payment_intent_data': {
+                'application_fee_amount': platform_fee,
+                'transfer_data': {
+                    'destination': stripe_account.stripe_account_id,
+                }
             }
-        )
+        }
+        
+        session = stripe.checkout.Session.create(**session_params)
         
         # Update support record with Stripe session ID
         support.stripe_checkout_session_id = session.id
@@ -89,6 +111,17 @@ def create_checkout_session(
         support.payment_status = PaymentStatus.FAILED
         db.commit()
         raise e
+
+
+def check_creator_can_receive_payments(db: Session, creator_id: str) -> bool:
+    """Check if a creator can receive payments."""
+    stripe_account = db.query(StripeAccount).filter(
+        StripeAccount.user_id == creator_id,
+        StripeAccount.charges_enabled == True,
+        StripeAccount.payouts_enabled == True
+    ).first()
+    
+    return stripe_account is not None
 
 
 def handle_checkout_completed(db: Session, session: dict) -> Optional[Support]:
@@ -173,10 +206,14 @@ def get_creator_stats(db: Session, creator_id: str) -> dict:
         }
         recent_supports_with_users.append(support_dict)
     
+    # Check if creator can receive payments
+    can_receive_payments = check_creator_can_receive_payments(db, creator_id)
+    
     return {
         'total_supporters': result.total_supporters or 0,
         'total_amount': result.total_amount or 0,
-        'recent_supports': recent_supports_with_users
+        'recent_supports': recent_supports_with_users,
+        'can_receive_payments': can_receive_payments
     }
 
 

@@ -57,6 +57,12 @@ def create_checkout_session(
         )
         return result
     except ValueError as e:
+        # Handle specific error for payment setup not completed
+        if "payment setup" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This creator hasn't set up their payment account yet. They need to complete their payment setup before they can receive support."
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)

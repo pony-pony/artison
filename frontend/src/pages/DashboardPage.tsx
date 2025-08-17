@@ -4,6 +4,7 @@ import { useAuth } from '../features/auth';
 import { useCreator } from '../features/creator';
 import { ProfileForm } from '../features/creator/components/ProfileForm';
 import { PlatformLinksManager } from '../features/creator/components/PlatformLinksManager';
+import { StripeConnectSetup } from '../features/payment';
 import { supportService } from '../features/support/services/supportService';
 import type { CreatorSupportSummary, SupporterSummary } from '../features/support/types';
 
@@ -31,6 +32,7 @@ export const DashboardPage = () => {
     userInfo: true,
     creatorProfile: false,
     platformLinks: false,
+    paymentSetup: false,
     publicPages: false,
     supportsGiven: true,
     supportsReceived: true,
@@ -179,6 +181,23 @@ export const DashboardPage = () => {
                     onReorder={reorderPlatformLinks}
                     error={creatorError}
                   />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Payment Setup - Only if profile exists */}
+          {profile && (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <AccordionHeader
+                title="Payment Setup"
+                subtitle="Connect your bank account to receive payments"
+                section="paymentSetup"
+                isOpen={openSections.paymentSetup}
+              />
+              {openSections.paymentSetup && (
+                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                  <StripeConnectSetup />
                 </div>
               )}
             </div>

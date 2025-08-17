@@ -6,6 +6,7 @@ from app.core.db import Base, engine
 from app.domains.auth.router import router as auth_router
 from app.domains.creator.router import router as creator_router
 from app.domains.support.router import router as support_router
+from app.domains.payment.router import router as payment_router
 
 # Import startup script
 import app.startup
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(creator_router)
 app.include_router(support_router)
+app.include_router(payment_router)
 
 
 @app.get("/")
