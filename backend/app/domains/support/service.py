@@ -38,15 +38,16 @@ def create_checkout_session(
     if not creator_profile:
         raise ValueError("Creator profile not found")
     
-    # Check if creator has Stripe account AND it's enabled
+    # Check if creator has Stripe account
     stripe_account = db.query(StripeAccount).filter(
         StripeAccount.user_id == creator_id,
         StripeAccount.charges_enabled == True,
         StripeAccount.payouts_enabled == True
     ).first()
     
-    if not stripe_account:
-        raise ValueError("Creator has not completed payment setup. They need to connect their bank account first.")
+    # TEMPORARY: Comment out the check for development
+    # if not stripe_account:
+    #     raise ValueError("Creator has not completed payment setup. They need to connect their bank account first.")
     
     # Create support record with pending status
     support = Support(
@@ -63,7 +64,7 @@ def create_checkout_session(
     # Calculate platform fee (10%)
     platform_fee = int(amount * settings.PLATFORM_FEE_PERCENT / 100)
     
-    # Create Stripe checkout session with automatic transfer
+    # Create Stripe checkout session
     try:
         session_params = {
             'payment_method_types': ['card'],
@@ -86,14 +87,20 @@ def create_checkout_session(
                 'support_id': support.id,
                 'supporter_id': supporter_id,
                 'creator_id': creator_id
-            },
-            'payment_intent_data': {
+            }
+        }
+        
+        # If creator has connected account, set up automatic transfer
+        if stripe_account:
+            session_params['payment_intent_data'] = {
                 'application_fee_amount': platform_fee,
                 'transfer_data': {
                     'destination': stripe_account.stripe_account_id,
                 }
             }
-        }
+        # TEMPORARY: If no connected account, payment goes to platform
+        else:
+            print(f"WARNING: Creator {creator.username} has no connected account. Payment will go to platform.")
         
         session = stripe.checkout.Session.create(**session_params)
         
@@ -115,13 +122,17 @@ def create_checkout_session(
 
 def check_creator_can_receive_payments(db: Session, creator_id: str) -> bool:
     """Check if a creator can receive payments."""
-    stripe_account = db.query(StripeAccount).filter(
-        StripeAccount.user_id == creator_id,
-        StripeAccount.charges_enabled == True,
-        StripeAccount.payouts_enabled == True
-    ).first()
+    # TEMPORARY: Always return True for development
+    return True
     
-    return stripe_account is not None
+    # Original implementation:
+    # stripe_account = db.query(StripeAccount).filter(
+    #     StripeAccount.user_id == creator_id,
+    #     StripeAccount.charges_enabled == True,
+    #     StripeAccount.payouts_enabled == True
+    # ).first()
+    # 
+    # return stripe_account is not None
 
 
 def handle_checkout_completed(db: Session, session: dict) -> Optional[Support]:

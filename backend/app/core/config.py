@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import json
-import os
 
 
 class Settings(BaseSettings):
@@ -13,15 +12,8 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./artison.db"
     
-    # CORS - 環境変数から直接JSONをパース
-    @property
-    def CORS_ORIGINS(self) -> List[str]:
-        cors_env = os.getenv("CORS_ORIGINS", '["http://localhost:5173"]')
-        try:
-            return json.loads(cors_env)
-        except json.JSONDecodeError:
-            # JSONパースに失敗した場合、カンマ区切りの文字列として処理
-            return [origin.strip() for origin in cors_env.split(",")]
+    # CORS
+    CORS_ORIGINS: List[str] = ["http://localhost:5173"]
     
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:5173"
@@ -38,6 +30,17 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        
+        @staticmethod
+        def parse_env_var(field_name: str, raw_val: str):
+            # Handle CORS_ORIGINS as JSON
+            if field_name == 'CORS_ORIGINS':
+                try:
+                    return json.loads(raw_val)
+                except json.JSONDecodeError:
+                    # Fallback to comma-separated
+                    return [origin.strip() for origin in raw_val.split(",")]
+            return raw_val
 
 
 settings = Settings()
